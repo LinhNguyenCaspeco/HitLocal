@@ -1,0 +1,54 @@
+Project Overview
+Build a Chrome DevTools Extension called "Local Trigger" designed for developer productivity. The goal is to allow developers to re-trigger network requests captured in the Network tab against a local development server with a single click, preserving the full request context (headers, method, and body).
+
+Core Functionality
+Custom DevTools Panel:
+
+Create a new panel in the F12 DevTools menu titled 'Local Trigger'.
+
+The UI should be a clean, minimalist list (flat design) of intercepted requests.
+
+Network Interception:
+
+Use chrome.devtools.network.onRequestFinished to listen for all Fetch and XHR requests.
+
+Capture the full HAR (HTTP Archive) context: URL, Method, Headers, and PostData (Body).
+
+URL Transformation Logic:
+
+For every captured request, implement a transformation utility convertToLocal(url).
+
+Rule: Replace the origin https://rms.dev.caspeco.net with https://localhost.caspeco.net:9552.
+
+Rule: Replace the path segment /api/navigation/marc/ with /api/navigation/marc-local/.
+
+Example: https://rms.dev.caspeco.net/api/navigation/marc/v1/data -> https://localhost.caspeco.net:9552/api/navigation/marc-local/v1/data.
+
+The "Hit Local" Action (Production-Ready)
+When the user clicks the "Hit Local" button for a request:
+
+Request Cloning: It must act like "Copy as cURL." Replicate the original HTTP Method and the Request Body.
+
+Header Handling: Clone all original headers (like Authorization, Content-Type, X-Requested-With). Crucially: Strip out "forbidden" headers that browsers block in manual fetches (e.g., Host, Cookie, Content-Length).
+
+Proxy via Service Worker: To bypass CORS restrictions, the DevTools panel must send a message to the Background Service Worker (chrome.runtime.sendMessage) to execute the fetch.
+
+Feedback Loop: Show a loading spinner during the fetch. Display a success (green) or failure (red) status badge based on the local server's response code.
+
+Technical Specifications
+Manifest: Use Manifest V3. Include host_permissions for https://*.caspeco.net/* and https://localhost.caspeco.net/*.
+
+Architecture: * manifest.json: Configuration and permissions.
+
+devtools.html/js: Registers the panel.
+
+panel.html/js: The UI and request list logic.
+
+background.js: The service worker that executes the "Local" fetch.
+
+Performance: Implement basic request deduplication or a "Clear" button to keep the panel from lagging during long sessions.
+
+UI/UX Style
+Minimalist & Clean: Use a card-based layout for requests.
+
+Action Buttons: Each request row should have two buttons: "Hit Local" (triggers the fetch) and "Copy Local cURL" (copies a cURL command with the local URL to the clipboard).

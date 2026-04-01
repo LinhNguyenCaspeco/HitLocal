@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>HitLocal — Generate Icons</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #ddd; display: flex; flex-direction: column; align-items: center; padding: 2rem; gap: 1.5rem; }
+    h1 { margin: 0; font-size: 1.2rem; color: #06b6d4; }
+    .row { display: flex; gap: 2rem; align-items: flex-end; }
+    .card { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    canvas { border-radius: 6px; border: 1px solid #333; }
+    a { display: inline-block; padding: 6px 16px; background: #a855f7; color: #fff; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; }
+    a:hover { background: #9333ea; }
+    p { color: #888; font-size: 12px; margin: 0; }
+    code { background: #222; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <h1>HitLocal — Icon Generator</h1>
+  <p>Click each Download button to save the PNG, then place all three files in the <code>icons/</code> folder.</p>
+  <div class="row" id="row"></div>
+
+  <script>
+    // SVG inlined as a data URI to avoid file:// CORS restrictions
+    const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%"   stop-color="#06b6d4"/>
+      <stop offset="50%"  stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#a855f7" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="22" fill="url(#bg)"/>
+  <ellipse cx="64" cy="68" rx="46" ry="46" fill="url(#halo)"/>
+  <circle cx="100" cy="20" r="4" fill="#06b6d4" opacity="0.7"/>
+  <circle cx="112" cy="32" r="2.5" fill="#a855f7" opacity="0.5"/>
+  <circle cx="108" cy="14" r="2" fill="#f97316" opacity="0.5"/>
+  <polygon points="71,12 39,68 61,68 49,116 89,60 67,60" fill="url(#bolt)" opacity="0.5" filter="url(#glow)"/>
+  <polygon points="71,12 39,68 61,68 49,116 89,60 67,60" fill="url(#bolt)"/>
+</svg>`;
+
+    const SIZES = [16, 48, 128];
+    const dataURL = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(SVG);
+
+    function render(size) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = size;
+          canvas.height = size;
+          canvas.getContext("2d").drawImage(img, 0, 0, size, size);
+          resolve(canvas);
+        };
+        img.src = dataURL;
+      });
+    }
+
+    async function init() {
+      const row = document.getElementById("row");
+
+      for (const size of SIZES) {
+        const canvas = await render(size);
+
+        // Scale up small canvases for a visible preview
+        const scale = size < 64 ? Math.ceil(96 / size) : 1;
+        const preview = document.createElement("canvas");
+        preview.width  = size * scale;
+        preview.height = size * scale;
+        const ctx = preview.getContext("2d");
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(canvas, 0, 0, size * scale, size * scale);
+
+        const link = document.createElement("a");
+        link.textContent = `Download icon${size}.png`;
+        link.download = `icon${size}.png`;
+        link.href = canvas.toDataURL("image/png");
+
+        const label = document.createElement("p");
+        label.textContent = `${size}×${size}`;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.appendChild(preview);
+        card.appendChild(label);
+        card.appendChild(link);
+        row.appendChild(card);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
