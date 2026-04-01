@@ -1,6 +1,7 @@
-# HitLocal
-
 A Chrome / Edge DevTools extension that intercepts network requests and replays them against your local development server with one click — preserving the original method, headers, and body.
+
+
+![Recording](https://github.com/user-attachments/assets/d51371a8-2b90-4868-87de-b80f3e7c7437)
 
 ---
 
